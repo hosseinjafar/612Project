@@ -1,1 +1,5 @@
 # Project for MDPH 612
+
+## Project Concept
+
+In this project, we aim to set up a web-based tool that automatically augments HDR BT data files and returns those files to verified users. The augmentation process consists of calculating the grades for each needle in HDR BT and distinguishing properly placed needles from badly placed ones. The grade of a needle is based on the change in plan quality when that needle is removed. For example, if the treatment plan quality degrades by a large percentage after removing one needle, that needle is highly valuable. On the contrary, after removing a needle, if the plan quality does not change by much or even improves, then the needle is badly placed. After grading every needle, we add this grade to the needle object in the DICOM files and show the location and the grade of the needles on the brachy needle template. We also show the quality of the treatment plan next to the gride template. In the future, I hope to make the grid template interactable such that by clicking on the template, a user can add a needle to their treatment plan and see how the plan quality changes and what is the contribution of the new needle.
