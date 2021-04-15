@@ -1,0 +1,38 @@
+<!-- imageViewer.html -->
+
+<html>
+<head>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+</head>
+<body>
+
+<!doctype html>
+    <title>Upload new File</title>
+    <h1>Upload new File</h1>
+    <form method=post enctype=multipart/form-data>
+      <input type=file name=file>
+      <input type=submit value=Upload>
+    </form>
+<div>
+<img id="patient_image" src = {{filepath}} style="width:512px;height:512px;border: 1px solid #ddd;">
+</div>
+
+
+<script type='text/javascript'>
+  // $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
+  // console.log(filename)
+  // document.getElementById('patient_image').src = $SCRIPT_ROOT + '/uploads/'+{{filename}};
+
+    // $(document).ready(function() {
+    //   $.getJSON($SCRIPT_ROOT + '/uploads/', {
+    //     }, function(data) {
+    //         image_list = data.image_list
+    //         image_urls = data.image_urls
+    //         // console.log(patient_file)
+    //         document.getElementById('patient_image').src = image_urls[0]
+    //       });
+    // })
+  </script>
+
+</body>
+</html>
