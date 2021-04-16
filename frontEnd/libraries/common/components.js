@@ -4518,10 +4518,14 @@ prx.types.html = {
 prx.types.audio = {
     name: 'audio'
     ,onDisplay: function(item,containerid,symbol) {
+        let sourceType = '';
+        if(item.audioFile) {
+            let audioType= prx.componentsHelper.isAudioFile(item.audioFile.name) ? item.audioFile.name.split('.').pop() : "mp3";
+            sourceType = prx.componentsHelper.getAudioFileSourceType(audioType);
+        }
+
         var _id = (!containerid) ? item.id : containerid+'-'+item.id;
-
         if(typeof(item.loop)=='undefined') { item.loop = false; }
-
         var cR = '';
         cR += '<div id="' + _id + '" ' + prx.items.getComponentBaseAttributes(item, containerid, symbol)  + ' class="' + prx.items.getComponentBaseClasses(item, containerid, symbol) + ' box pos type-audio">';
         cR += '<style>';
@@ -4529,6 +4533,7 @@ prx.types.audio = {
         cR += '</style>';
         cR += prx.items.getComponentPrependDivs(item, containerid, symbol);
         cR += '<audio '+ ((prx.componentsHelper.getProp(item.controls,'boolean')) ? 'controls' : '') +' '+ ((prx.componentsHelper.getProp(item.preload,'boolean') && !prx.editor) ? 'preload' : 'preload="none"') +' '+ ((prx.componentsHelper.getProp(item.autoplay,'boolean') && !prx.editor) ? 'autoplay' : '') +' '+ ((prx.componentsHelper.getProp(item.loop,'boolean')) ? 'loop' : '') +' controlsList="nodownload">';
+        if(typeof(item.audioFile) !== 'undefined' && prx.componentsHelper.getProp(item.audioFile.fileId,'other') != '') cR += '<source src="'+prx.componentsHelper.getProp(item.audioFile,'asset')+'" type="audio/'+ sourceType +'" />';
         if(prx.componentsHelper.getProp(item.audioFileMP3.fileId,'other') != '') cR += '<source src="'+prx.componentsHelper.getProp(item.audioFileMP3,'asset')+'" type="audio/mpeg" />';
         if(prx.componentsHelper.getProp(item.audioFileOGG.fileId,'other') != '') cR += '<source src="'+prx.componentsHelper.getProp(item.audioFileOGG,'asset')+'" type="audio/ogg" />';
         if(prx.componentsHelper.getProp(item.audioFileWAV.fileId,'other') != '') cR += '<source src="'+prx.componentsHelper.getProp(item.audioFileWAV,'asset')+'" type="audio/x-wav" />';
@@ -4566,8 +4571,8 @@ prx.types.audio = {
     ,propertyGroups: [
         {
             caption: 'Audio properties',
-            properties: [[
-                {
+            properties: [
+                [{
                     caption: 'Audio file MP3'
                     ,name: 'audioFileMP3'
                     ,type: 'asset'
@@ -4575,7 +4580,18 @@ prx.types.audio = {
                         if(item.audioFileMP3.fileId == '') {
                             return 'No asset selected.';
                         }
+
                         return prx.utils.escapeHTML(item.audioFileMP3.name);
+                    }
+                    ,hiddenByDefault: function(item) {
+                        if(prx.componentsHelper.getAudioFilesTotal(item) <= 1){
+                            if(item.audioFileMP3.fileId != '') {
+                                item.audioFile = item.audioFileMP3;
+                                item.audioFileMP3 = {fileId: '', assetType: '', name: ''};
+                            }
+                            return true;
+                        }
+                        return false;
                     }
                     ,value: function(item,name) {
                         return JSON.stringify({
@@ -4598,7 +4614,16 @@ prx.types.audio = {
                     }
                     return prx.utils.escapeHTML(item.audioFileOGG.name);
                 }
-                ,value: function(item,name) {
+                ,hiddenByDefault: function(item) {
+                    if(prx.componentsHelper.getAudioFilesTotal(item) <= 1){
+                        if(item.audioFileOGG.fileId != '') {
+                            item.audioFile = item.audioFileOGG;
+                            item.audioFileOGG = {fileId: '', assetType: '', name: ''};
+                        }
+                        return true;
+                    }
+                    return false;
+                },value: function(item,name) {
                     return JSON.stringify({
                         allow: 'audio',
                         asset: item.audioFileOGG
@@ -4618,6 +4643,16 @@ prx.types.audio = {
                         return 'No asset selected.';
                     }
                     return prx.utils.escapeHTML(item.audioFileWAV.name);
+                }
+                ,hiddenByDefault: function(item) {
+                    if(prx.componentsHelper.getAudioFilesTotal(item) <= 1){
+                        if(item.audioFileWAV.fileId != '') {
+                            item.audioFile = item.audioFileWAV;
+                            item.audioFileWAV = {fileId: '', assetType: '', name: ''};
+                        }
+                        return true;
+                    }
+                    return false;
                 }
                 ,value: function(item,name) {
                     return JSON.stringify({
@@ -4640,6 +4675,16 @@ prx.types.audio = {
                     }
                     return prx.utils.escapeHTML(item.audioFileAAC.name);
                 }
+                    ,hiddenByDefault: function(item) {
+                        if(prx.componentsHelper.getAudioFilesTotal(item) <= 1){
+                            if(item.audioFileAAC.fileId != '') {
+                                item.audioFile = item.audioFileAAC;
+                                item.audioFileAAC = {fileId: '', assetType: '', name: ''};
+                            }
+                            return true;
+                        }
+                        return false;
+                    }
                 ,value: function(item,name) {
                     return JSON.stringify({
                         allow: 'audio',
@@ -4651,6 +4696,34 @@ prx.types.audio = {
                     rerender: true
 					 }
 			    }],
+                [{
+                    caption: 'Audio file'
+                    ,hint: '.mp3 file type recommended'
+                    ,name: 'audioFile'
+                    ,type: 'asset'
+                    ,displayValue: function(item,name) {
+                        if(item.audioFile === undefined || item.audioFile.fileId == '') {
+                            return 'No asset selected.';
+                        }
+                        return prx.utils.escapeHTML(item.audioFile.name);
+                    }
+                    ,hiddenByDefault: function(item) {
+                        if(prx.componentsHelper.getAudioFilesTotal(item) > 1) {
+                            return true;
+                        }
+                        return false;
+                    }
+                    ,value: function(item,name) {
+                        return JSON.stringify({
+                            allow: 'audio',
+                            asset: item.audioFile
+                        });
+                    }
+                    ,changeProperty: {
+                        caption: 'Audio file',
+                        rerender: true
+                    }
+                }],
 			    [
 			    {
 			    	caption: 'Preload audio'
@@ -4718,6 +4791,11 @@ prx.types.video = {
     name: 'video'
     ,onDisplay: function(item,containerid,symbol) {
         var _id = (!containerid) ? item.id : containerid+'-'+item.id;
+        let sourceType = '';
+        if(item.videoFile) {
+            let videoType = prx.componentsHelper.isVideoFile(item.videoFile.name) ? item.videoFile.name.split('.').pop() : "mp4";
+            sourceType = prx.componentsHelper.getVideoFileSourceType(videoType);
+        }
 
         if(typeof(item.vimeoid)=='undefined') { item.vimeoid = ''; }
         if(typeof(item.loop)=='undefined') { item.loop = false; }
@@ -4729,9 +4807,11 @@ prx.types.video = {
         cR += prx.items.getComponentBaseStyle(item, containerid, symbol);
         cR += '</style>';
         cR += prx.items.getComponentPrependDivs(item, containerid, symbol);
+
         switch(prx.componentsHelper.getProp(item.videoType,'other')) {
         case 'html5':
             cR += '<video id="'+_id+'-html5video" class="html5" width="100%" height="100%" '+ ((prx.componentsHelper.getProp(item.controls,'boolean')) ? 'controls' : '') + ' ' + ((prx.componentsHelper.getProp(item.mute,'boolean')) ? 'muted' : '') + ((prx.componentsHelper.getProp(item.placeholder.fileId,'other') != '') ? ' poster='+prx.componentsHelper.getProp(item.placeholder,'asset') : '' )+' '+ ((!prx.componentsHelper.getProp(item.preload,'boolean') && !(prx.editor && prx.componentsHelper.getProp(item.autoplay,'boolean'))) ? 'preload="none"' : '') +' '+ ((prx.componentsHelper.getProp(item.autoplay,'boolean') && !prx.editor) ? 'autoplay' : '') +' '+((prx.componentsHelper.getProp(item.loop,'boolean')) ? 'loop' : '')+' webkit-playsinline="true" playsinline="true" controlsList="nodownload">';
+            if(typeof(item.videoFile) !== 'undefined' && prx.componentsHelper.getProp(item.videoFile.fileId,'other') != '') cR += '<source src="'+prx.componentsHelper.getProp(item.videoFile,'asset')+'" type="video/'+sourceType+'" />';
             if(prx.componentsHelper.getProp(item.videoFileMP4.fileId,'other') != '') cR += '<source src="'+prx.componentsHelper.getProp(item.videoFileMP4,'asset')+'" type="video/mp4" />';
             if(prx.componentsHelper.getProp(item.videoFileWEBM.fileId,'other') != '') cR += '<source src="'+prx.componentsHelper.getProp(item.videoFileWEBM,'asset')+'" type="video/webm" />';
             if(prx.componentsHelper.getProp(item.videoFileOGG.fileId,'other') != '') cR += '<source src="'+prx.componentsHelper.getProp(item.videoFileOGG,'asset')+'" type="video/ogg" />';
@@ -4754,6 +4834,8 @@ prx.types.video = {
             //}
             break;
         }
+
+
         cR += prx.items.getComponentAppendDivs(item, containerid, symbol);
         cR += '</div>';
         return cR;
@@ -4836,20 +4918,25 @@ prx.types.video = {
 		    		,value: function(item,name){
 		    	  		return item.videoType;
 		      		}
-		      		,values: [{ displayValue: 'HTML5 video', value: 'html5' }, { displayValue: 'YouTube video', value: 'youtube' }, { displayValue: 'Vimeo video', value: 'vimeo' }]
+		      		,values: [{ displayValue: 'Uploaded video', value: 'html5' }, { displayValue: 'YouTube video', value: 'youtube' }, { displayValue: 'Vimeo video', value: 'vimeo' }]
 		      		,onChange: function(item){
 		      			//if(item.videoType == 'youtube') {
 		      			switch(item.videoType) {
 		      			case 'youtube':
-		  					$('#property-videoFileMP4, #property-videoFileOGG, #property-videoFileWEBM, #property-placeholder, #property-removePlaceholder, #property-preload, #property-vimeoid').hide();
+		  					$('#property-videoFile, #property-videoFileMP4, #property-videoFileOGG, #property-videoFileWEBM, #property-placeholder, #property-removePlaceholder, #property-preload, #property-vimeoid').hide();
                             $('#property-youtubeid, #property-controls').show();
                             break;
 		      			case 'vimeo':
-		      				$('#property-videoFileMP4, #property-videoFileOGG, #property-videoFileWEBM, #property-placeholder, #property-removePlaceholder, #property-preload, #property-youtubeid, #property-controls').hide();
+		      				$('#property-videoFile, #property-videoFileMP4, #property-videoFileOGG, #property-videoFileWEBM, #property-placeholder, #property-removePlaceholder, #property-preload, #property-youtubeid, #property-controls').hide();
                             $('#property-vimeoid').show();
 		      				break;
 		      			case 'html5':
-                            $('#property-videoFileMP4, #property-videoFileOGG, #property-videoFileWEBM, #property-placeholder, #property-removePlaceholder, #property-preload, #property-controls').show();
+		      			    if(prx.componentsHelper.getVideoFilesTotal(item) > 1){
+                                $('#property-videoFileMP4, #property-videoFileOGG, #property-videoFileWEBM, #property-placeholder, #property-removePlaceholder, #property-preload, #property-controls').show();
+                            }
+		      			    else {
+                                $('#property-videoFile').show();
+                            }
                             $('#property-youtubeid, #property-vimeoid').hide();
                             break;
 		      			}
@@ -4932,10 +5019,17 @@ prx.types.video = {
                     });
                 }
 			    	,hiddenByDefault: function(item) {
-			    		return !(item.videoType == 'html5');
+                        if(item.videoType == 'html5' && prx.componentsHelper.getVideoFilesTotal(item) <= 1){
+                            if(item.videoFileMP4.fileId != '') {
+                                item.videoFile = item.videoFileMP4;
+                                item.videoFileMP4 = {fileId: '', assetType: '', name: ''};
+                            }
+                            return true;
+                        }
+                        return !(item.videoType == 'html5');
 			    	}
 			    	,changeProperty: {
-			    		caption: 'MP4 Video file',
+			    	caption: 'MP4 Video file',
                     rerender: true
                 }
 			    }],
@@ -4955,9 +5049,16 @@ prx.types.video = {
                         asset: item.videoFileWEBM
                     });
                 }
-			    	,hiddenByDefault: function(item) {
-			    		return !(item.videoType == 'html5');
-			    	}
+                    ,hiddenByDefault: function(item) {
+                        if(item.videoType == 'html5' && prx.componentsHelper.getVideoFilesTotal(item) <= 1){
+                            if(item.videoFileWEBM.fileId != '') {
+                                item.videoFile = item.videoFileWEBM;
+                                item.videoFileWEBM = {fileId: '', assetType: '', name: ''};
+                            }
+                            return true;
+                        }
+                        return !(item.videoType == 'html5');
+                    }
 			    	,changeProperty: {
                     caption: 'WebM Video file',
                     rerender: true
@@ -4978,15 +5079,49 @@ prx.types.video = {
                         allow: 'video',
                         asset: item.videoFileOGG
                     });
-                }
-			    	,hiddenByDefault: function(item) {
-			    		return !(item.videoType == 'html5');
-			    	}
-			    	,changeProperty: {
+                },hiddenByDefault: function(item) {
+                        if(item.videoType == 'html5' && prx.componentsHelper.getVideoFilesTotal(item) <= 1){
+                            if(item.videoFileOGG.fileId != '') {
+                                item.videoFile = item.videoFileOGG;
+                                item.videoFileOGG = {fileId: '', assetType: '', name: ''};
+                            }
+                            return true;
+                        }
+                        return !(item.videoType == 'html5');
+                    }
+                    ,changeProperty: {
                     caption: 'OGG Video file',
                     rerender: true
                 }
 			    }],
+                [{
+                    caption: 'Video file'
+                    ,hint: '.mp4 or .webm file types recommended'
+                    ,name: 'videoFile'
+                    ,type: 'asset'
+                    ,displayValue: function(item,name) {
+                        if(item.videoFile === undefined || item.videoFile.fileId == '') {
+                            return 'No asset selected.';
+                        }
+                        return prx.utils.escapeHTML(item.videoFile.name);
+                    }
+                    ,value: function(item,name) {
+                        return JSON.stringify({
+                            allow: 'video',
+                            asset: item.videoFile
+                        });
+                    }
+                    ,hiddenByDefault: function(item) {
+                        if(item.videoType == 'html5' && prx.componentsHelper.getVideoFilesTotal(item) > 1) {
+                            return true;
+                        }
+                        return !(item.videoType == 'html5');
+                    }
+                    ,changeProperty: {
+                        caption: 'Video file',
+                        rerender: true
+                    }
+                }],
 			     [{
 			    	caption: 'Placeholder image'
 			    	,name: 'placeholder'
@@ -7922,10 +8057,11 @@ prx.components.audio = {
     ,helper: prx.url.devices+'/common/audio/helper.png'
     ,width: 300
     ,height: 65
-    ,audioFileWAV: { fileId: '', assetType: '', name: '' }
-    ,audioFileMP3: { fileId: '', assetType: '', name: '' }
-    ,audioFileOGG: { fileId: '', assetType: '', name: '' }
-    ,audioFileAAC: { fileId: '', assetType: '', name: '' }
+    ,audioFile: { fileId: '', assetType: '', name: ''}
+    ,audioFileWAV: { fileId: '', assetType: '', name: ''}
+    ,audioFileMP3: { fileId: '', assetType: '', name: ''}
+    ,audioFileOGG: { fileId: '', assetType: '', name: ''}
+    ,audioFileAAC: { fileId: '', assetType: '', name: ''}
     ,controls: true
     ,preload: false
     ,autoplay: false
@@ -7944,6 +8080,7 @@ prx.components.video = {
     ,width: 250*prx.componentsHelper.getScale(_library)
     ,height: 180*prx.componentsHelper.getScale(_library)
     ,videoType: 'html5'
+    ,videoFile: { fileId: '', assetType: '', name: '' }
     ,videoFileMP4: { fileId: '', assetType: '', name: '' }
     ,videoFileOGG: { fileId: '', assetType: '', name: '' }
     ,videoFileWEBM: { fileId: '', assetType: '', name: '' }
